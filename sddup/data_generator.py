@@ -1,0 +1,222 @@
+from faker import Faker
+import random
+
+class DataGenerator:
+    def __init__(self, language: str = "pt-BR", seeded: bool = True):
+        self.faker = Faker(language)
+        
+        # Provides the same results everytime
+        if seeded:
+            self.__set_seed()
+
+    def __set_seed(self):
+        Faker.seed(12345)
+        random.seed(12345)
+
+    def testing(self):
+        return self.generate_data_xml_amount(3)
+
+    def generate_pdf_data(self):
+        pass
+
+    def generate_pdf_data_amount(self):
+        pass
+
+    def generate_data_xml(self):
+        data = dict()
+
+        # Graduate data
+        data["graduate"] = self.__generate_xml_graduate_data()
+
+        # Course data
+        data["course"] = self.__generate_xml_course_data()
+
+        # Issuer data
+        data["issuer"] = self.__generate_xml_issuer_data()
+
+        return data
+
+    def __generate_xml_graduate_data(self):
+        data = dict()
+        
+        graduate_id = random.randint(10000000, 99999999)
+        graduate_name = self.faker.name()
+        
+        gender = ["M", "F"]
+        n = random.randint(0, 1)
+        graduate_gender = gender[n]
+
+        graduate_nationality = "Brasileiro"
+        graduate_city_code = random.randint(1, 100000000)
+        graduate_city_name = self.faker.city()
+
+        # TODO transform in code
+        graduate_city_uf = self.faker.state()
+        graduate_rg_uf = self.faker.state()
+       
+        # TODO fix format
+        graduate_cpf = random.randint(10000000000, 99999999999)
+        graduate_rg = random.randint(1000000, 9999999)
+
+        graduate_birth_date = self.faker.date()
+
+        data["id"] = graduate_id 
+        data["name"] = graduate_name
+        data["gender"] = graduate_gender
+        data["nationality"] = graduate_nationality
+        data["city_code"] = graduate_city_code
+        data["city_name"] = graduate_city_name
+        data["city_uf"] = graduate_city_uf
+        data["cpf"] = graduate_cpf
+        data["rg"]= graduate_rg
+        data["rg_uf"] = graduate_rg_uf
+        data["birth_date"] = graduate_birth_date
+
+        return data
+
+    def __generate_xml_course_data(self):
+        data = dict()
+
+        # TODO do a generator for this
+        course_name = "Ciencias da Computacao"
+
+        course_code = random.randint(1, 99999)
+
+        # TODO give more options
+        course_habilitation_name = "Bacharelado em " + course_name
+        course_habilitation_date = self.faker.date()
+
+        course_types = ["Presencial", "Semi-presencial", "Remoto"]
+        n = random.randint(0, 2)
+        course_type = course_types[n]
+
+        course_title = "Bacharel"
+        course_degree = "Bacharelado"
+
+        address = self.faker.address().split("\n")
+        cep, city_uf = address[2].split(" ", 1)
+        city, uf = city_uf.split("/")
+        course_address_street = address[0]
+        course_address_complement = "Campus Universitario Prof. Joao David Ferreira Lima"
+        course_address_district = address[1]
+        course_address_city = city.strip()
+        course_address_city_code = random.randint(1, 100000000)
+        course_address_uf = uf.strip()
+        course_address_cep = cep.replace("-", "")
+
+        course_authorization_type = "Parecer"
+        course_authorization_number = random.randint(1, 999)
+        course_authorization_date = self.faker.date()
+
+        course_recognition_type = "Portaria"
+        course_recognition_number = random.randint(1, 999)
+        course_recognition_date = self.faker.date()
+        course_recognition_publication_date = self.faker.date()
+
+        data["name"] = course_name
+        data["code"] = course_code
+        data["habilitation_name"] = course_habilitation_name
+        data["habilitation_date"] = course_habilitation_date
+        data["type"] = course_type
+        data["title"] = course_title
+        data["degree"] = course_degree
+        
+        data["address_street"] = course_address_street
+        data["address_complement"] = course_address_complement
+        data["address_district"] = course_address_district
+        data["address_city"] = course_address_city
+        data["address_city_code"] = course_address_city_code
+        data["address_uf"] = course_address_uf
+        data["address_cep"] = course_address_cep
+
+        data["authorization_type"] = course_authorization_type
+        data["authorization_number"] = course_authorization_number
+        data["authorization_date"] = course_authorization_date
+
+        data["recognition_type"] = course_recognition_type
+        data["recognition_number"] = course_recognition_number
+        data["recognition_date"] = course_recognition_date
+        data["recognition_publication_date"] = course_recognition_publication_date
+
+        return data
+
+    def __generate_xml_issuer_data(self):
+        data = dict()
+
+        issuer_name = "UNIVERSIDADE FEDERAL DE SANTA CATARINA"
+        issuer_code = random.randint(1, 999)
+
+        # TODO fix format
+        issuer_cnpj = random.randint(10000000000000, 99999999999999)
+
+        address = self.faker.address().split("\n")
+        cep, city_uf = address[2].split(" ", 1)
+        city, uf = city_uf.split("/")
+        issuer_address_street = "Campus Universitario"
+        issuer_address_number = "s/n"
+        issuer_address_district = address[1]
+        issuer_address_city_code = random.randint(1, 9999999)
+        issuer_address_city = city.strip()
+        issuer_address_uf = uf.strip()
+        issuer_address_cep = cep.replace("-", "")
+
+        issuer_accreditation_type = "Lei Federal"
+        issuer_accreditation_number = random.randint(1, 9999)
+        issuer_accreditation_date = self.faker.date()
+        issuer_accreditation_publication_date = self.faker.date()
+        issuer_accreditation_publication_section = random.randint(1, 9)
+        issuer_accreditation_publication_page = random.randint(1, 99)
+
+        issuer_reaccreditation_type = "Portaria"
+        issuer_reaccreditation_number = random.randint(1, 9999)
+        issuer_reaccreditation_date = self.faker.date()
+        issuer_reaccreditation_publication_date = self.faker.date()
+        issuer_reaccreditation_publication_section = random.randint(1, 9)
+        issuer_reaccreditation_publication_page = random.randint(1, 99)
+
+        issuer_maintainer_name = issuer_name
+        issuer_maintainer_cnpj = issuer_cnpj
+        issuer_maintainer_address_street = issuer_address_street 
+        issuer_maintainer_address_number = issuer_address_number
+        issuer_maintainer_address_district = issuer_address_district
+        issuer_maintainer_address_city_code = issuer_address_city_code
+        issuer_maintainer_address_city = issuer_address_city
+        issuer_maintainer_address_uf = issuer_address_uf
+        issuer_maintainer_address_cep = issuer_address_cep
+
+        data["name"] = issuer_name
+        data["code"] = issuer_code
+        data["cnpj"] = issuer_cnpj
+
+        data["address_street"] = issuer_address_street
+        data["address_number"] = issuer_address_number
+        data["address_district"] = issuer_address_district
+        data["address_city_code"] = issuer_address_city_code
+        data["address_city"] = issuer_address_city
+        data["address_uf"] = issuer_address_uf
+        data["address_cep"] = issuer_address_cep
+
+        data["accreditation_type"] = issuer_accreditation_type
+        data["accreditation_number"] = issuer_accreditation_number
+        data["accreditation_date"] = issuer_accreditation_date
+        data["accreditation_publication_date"] = issuer_accreditation_publication_date
+        data["accreditation_publication_section"] = issuer_accreditation_publication_section
+        data["accreditation_publication_page"] = issuer_accreditation_publication_page
+
+        data["reaccreditation_type"] = issuer_reaccreditation_type
+        data["reaccreditation_number"] = issuer_reaccreditation_number
+        data["reaccreditation_date"] = issuer_reaccreditation_date
+        data["reaccreditation_publication_date"] = issuer_reaccreditation_publication_date
+        data["reaccreditation_publication_section"] = issuer_reaccreditation_publication_section
+        data["reaccreditation_publication_page"] = issuer_reaccreditation_publication_page
+
+        data["maintainer_name"] = issuer_maintainer_name
+        data["maintainer_cnpj"] = issuer_maintainer_cnpj
+        data["maintainer_address_street"] = issuer_maintainer_address_street
+        data["maintainer_address_number"] = issuer_maintainer_address_number
+        data["maintainer_address_district"] = issuer_maintainer_address_district
+        data["maintainer_address_city_code"] = issuer_maintainer_address_city_code
+        data["maintainer_address_city"] = issuer_maintainer_address_city
+        data["maintainer_address_uf"] = issuer_maintainer_address_uf
+        data["maintainer_address_cep"] = issuer_maintainer_address_cep
+        return data
