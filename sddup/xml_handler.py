@@ -8,10 +8,39 @@ import xml.etree.ElementTree as ET
 class XMLHandler:
     def __init__(self):
         self.generator = DataGenerator()
+        self.namespaces = {"ns": "http://portal.mec.gov.br/diplomadigital/arquivos-em-xsd",
+                           "xades": "http://uri.etsi.org/01903/v1.3.2#",
+                           "ds": "http://www.w3.org/2000/09/xmldsig#"}
 
-    def create_xml(self, amount: int = 1, template_path: str = "./templates/diploma_template.xml", output_path: str = "./outputs/xml/generated_xmls"):
+    def test(self):
+        xml_root = etree.parse("./templates/diploma_template.xml")
+        
+        tags = xml_root.xpath(".//xades:EncapsulatedTimeStamp", namespaces= self.namespaces)
+        for tag in tags:
+            tag.attrib["Id"] = ""
+            tag.text = ""
+
+        tags = xml_root.xpath(".//ds:Signature", namespaces= self.namespaces)
+        for tag in tags:
+            tag.attrib["Id"] = ""
+
+        tags = xml_root.xpath(".//xades:SignatureTimeStamp", namespaces= self.namespaces)
+        for tag in tags:
+            tag.attrib["Id"] = ""
+
+        tags = xml_root.xpath(".//xades:SigningTime", namespaces= self.namespaces)
+        for tag in tags:
+            tag.text = ""
+        
+        tags = xml_root.xpath(".//ds:SignatureValue", namespaces= self.namespaces)
+        for tag in tags:
+            tag.attrib["Id"] = ""
+            tag.text = ""
+
+        xml_root.write("./templates/diploma_template.xml", doctype='<?xml version="1.0" encoding="UTF-8" standalone="no"?>', encoding="UTF-8")
+
+    def create_xml(self, amount: int = 1, template_path: str = "./sddup/templates/diploma_template.xml", output_path: str = "./sddup/outputs/xml/generated_xmls"):
         os.makedirs(output_path, exist_ok=True)
-        namespaces = {"ns": "http://portal.mec.gov.br/diplomadigital/arquivos-em-xsd"}
 
         for i in range(amount):
             data = self.generator.generate_data_xml()
@@ -20,9 +49,9 @@ class XMLHandler:
             template_root = etree.parse(template_path)
             template_root = self.__fill_xml(formatted_data, template_root)
 
-            template_root.write(f"{output_path}/xml_generated_from_template_{i}.xml", xml_declaration=True, encoding="UTF-8", standalone=False)
+            template_root.write(f"{output_path}/xml_generated_from_template_{i}.xml", doctype='<?xml version="1.0" encoding="UTF-8" standalone="no"?>', encoding="UTF-8")
 
-    def extract_data(self, amount: int = 1, xml_dir_path: str = "./outputs/xml/generated_xmls", output_path: str = "./outputs/xml/extracted_data"):
+    def extract_data(self, amount: int = 1, xml_dir_path: str = "./sddup/outputs/xml/generated_xmls", output_path: str = "./sddup/outputs/xml/extracted_data"):
         os.makedirs(output_path, exist_ok=True)
 
         for i in range(amount):
@@ -31,7 +60,7 @@ class XMLHandler:
             with open(f"{output_path}/extracted_data_{i}.data", "w") as file:
                 file.write(data)
 
-    def recreate_xml(self, amount: int = 1, template_path: str = "./templates/diploma_template.xml", data_path: str = "./outputs/xml/extracted_data", output_path: str = "./outputs/xml/recreated_xmls"):
+    def recreate_xml(self, amount: int = 1, template_path: str = "./sddup/templates/diploma_template.xml", data_path: str = "./sddup/outputs/xml/extracted_data", output_path: str = "./sddup/outputs/xml/recreated_xmls"):
         os.makedirs(output_path, exist_ok=True)
 
         for i in range(amount):
@@ -41,10 +70,28 @@ class XMLHandler:
             xml_root = etree.parse(template_path)
 
             xml_root = self.__fill_xml(data, xml_root)
-            xml_root.write(f"{output_path}/xml_recreated_from_data_{i}.xml", xml_declaration=True, encoding="UTF-8", standalone=False)
+            xml_root.write(f"{output_path}/xml_recreated_from_data_{i}.xml", doctype='<?xml version="1.0" encoding="UTF-8" standalone="no"?>', encoding="UTF-8")
 
     def __fill_xml(self, data: str, xml_root):
-        namespaces = {"ns": "http://portal.mec.gov.br/diplomadigital/arquivos-em-xsd"}
+        data_chunks_by_type = data.split("$")
+
+        diploma_data = data_chunks_by_type[0]
+        encapsulated_timestamp_data = data_chunks_by_type[1]
+        signature_id_data = data_chunks_by_type[2]
+        signature_timestamp_data = data_chunks_by_type[3]
+        signing_time_data = data_chunks_by_type[4]
+        signature_value_data = data_chunks_by_type[5]
+
+        xml_root = self.__fill_diploma_data_xml(diploma_data, xml_root)
+        xml_root = self.__fill_encapsulated_timestamp_data_xml(encapsulated_timestamp_data, xml_root)
+        xml_root = self.__fill_signature_id_data_xml(signature_id_data, xml_root)
+        xml_root = self.__fill_signature_timestamp_data_xml(signature_timestamp_data, xml_root)
+        xml_root = self.__fill_signing_time_data_xml(signing_time_data, xml_root)
+        xml_root = self.__fill_signature_value_data_xml(signature_value_data, xml_root)
+        
+        return xml_root
+
+    def __fill_diploma_data_xml(self, data: str, xml_root):
         data_chunks = data.split(";")
         for chunk in data_chunks:
             tag_path, value = chunk.split(":")
@@ -52,13 +99,82 @@ class XMLHandler:
             # Formatting tag_path to be used with xpath
             tag_path = ".//ns:" + tag_path.replace("/", "/ns:")
                 
-            xml_root.xpath(tag_path, namespaces=namespaces)[0].text = value
+            xml_root.xpath(tag_path, namespaces= self.namespaces)[0].text = value
+
+        return xml_root
+
+    def __fill_encapsulated_timestamp_data_xml(self, data: str, xml_root):
+        data_chunks = data.split(";")
+        tags = xml_root.xpath(".//xades:EncapsulatedTimeStamp", namespaces= self.namespaces)
+        for chunk in data_chunks:
+            occurence, tag_id, value = chunk.split(":")
+            occurence = int(occurence)
+
+            tags[occurence].attrib["Id"] = tag_id
+            tags[occurence].text = value
+
+        return xml_root
+
+    def __fill_signature_id_data_xml(self, data: str, xml_root):
+        data_chunks = data.split(";")
+        tags = xml_root.xpath(".//ds:Signature", namespaces= self.namespaces)
+        for chunk in data_chunks:
+            occurence, tag_id = chunk.split(":")
+            occurence = int(occurence)
+
+            tags[occurence].attrib["Id"] = tag_id
+
+        return xml_root
+
+    def __fill_signature_timestamp_data_xml(self, data: str, xml_root):
+        data_chunks = data.split(";")
+        tags = xml_root.xpath(".//xades:SignatureTimeStamp", namespaces= self.namespaces)
+        for chunk in data_chunks:
+            occurence, tag_id = chunk.split(":")
+            occurence = int(occurence)
+
+            tags[occurence].attrib["Id"] = tag_id
+
+        return xml_root
+
+    def __fill_signing_time_data_xml(self, data: str, xml_root):
+        data_chunks = data.split(";")
+        tags = xml_root.xpath(".//xades:SigningTime", namespaces= self.namespaces)
+        for chunk in data_chunks:
+            occurence, value = chunk.split(":", 1)
+            occurence = int(occurence)
+
+            tags[occurence].text = value
+
+        return xml_root
+
+    def __fill_signature_value_data_xml(self, data: str, xml_root):
+        data_chunks = data.split(";")
+        tags = xml_root.xpath(".//ds:SignatureValue", namespaces= self.namespaces)
+        for chunk in data_chunks:
+            occurence, tag_id, value = chunk.split(":")
+            occurence = int(occurence)
+
+            tags[occurence].attrib["Id"] = tag_id
+            tags[occurence].text = value
 
         return xml_root
 
 
     def __extract_data_from_xml(self, xml_path: str):
-        namespaces = {"ns": "http://portal.mec.gov.br/diplomadigital/arquivos-em-xsd"}
+        xml_root = etree.parse(xml_path)
+        data = ""
+
+        data += self.__extract_diploma_data_from_xml(xml_root) + "$"
+        data += self.__extract_encapsulated_timestamp_from_xml(xml_root) + "$"
+        data += self.__extract_signature_id_from_xml(xml_root) + "$"
+        data += self.__extract_signature_timestamp_from_xml(xml_root) + "$"
+        data += self.__extract_signing_time_from_xml(xml_root) + "$"
+        data += self.__extract_signature_value_from_xml(xml_root)
+
+        return data
+
+    def __extract_diploma_data_from_xml(self, xml_root):
         tags = {"Diplomado": ["ID", "Nome", "Sexo", "Nacionalidade", "Naturalidade/CodigoMunicipio", "Naturalidade/NomeMunicipio", "Naturalidade/UF", "CPF", "RG/Numero", "RG/UF", "DataNascimento"],
                 "DadosCurso": ["NomeCurso", "CodigoCursoEMEC", "Habilitacao/NomeHabilitacao", "Habilitacao/DataHabilitacao", "Modalidade", "TituloConferido/Titulo", "GrauConferido",
                                "EnderecoCurso/Logradouro", "EnderecoCurso/Complemento", "EnderecoCurso/Bairro", "EnderecoCurso/CodigoMunicipio", "EnderecoCurso/NomeMunicipio", "EnderecoCurso/UF", "EnderecoCurso/CEP",
@@ -71,29 +187,94 @@ class XMLHandler:
 
         data = ""
         
-        xml_root = etree.parse(xml_path)
-
         for path in tags["Diplomado"]:
             tag = "Diplomado/" + path
             tag_xpath = ".//ns:" + tag.replace("/", "/ns:")
-            value = xml_root.xpath(tag_xpath, namespaces=namespaces)[0].text
+            value = xml_root.xpath(tag_xpath, namespaces=self.namespaces)[0].text
             data += f"{tag}:{value};" 
 
         for path in tags["DadosCurso"]:
             tag = "DadosCurso/" + path
             tag_xpath = ".//ns:" + tag.replace("/", "/ns:")
-            value = xml_root.xpath(tag_xpath, namespaces=namespaces)[0].text
+            value = xml_root.xpath(tag_xpath, namespaces=self.namespaces)[0].text
             data += f"{tag}:{value};" 
 
         for path in tags["IesEmissora"]:
             tag = "IesEmissora/" + path
             tag_xpath = ".//ns:" + tag.replace("/", "/ns:")
-            value = xml_root.xpath(tag_xpath, namespaces=namespaces)[0].text
+            value = xml_root.xpath(tag_xpath, namespaces=self.namespaces)[0].text
             data += f"{tag}:{value};"
 
         data = data[:len(data)-1]
 
-        return(data)
+        return data
+
+    def __extract_encapsulated_timestamp_from_xml(self, xml_root):
+        tags = xml_root.xpath(".//xades:EncapsulatedTimeStamp", namespaces= self.namespaces)
+        data = ""
+
+        for i in range(len(tags)):
+            tag_attrib = tags[i].attrib.get("Id")
+            tag_value = tags[i].text
+
+            data += f"{i}:{tag_attrib}:{tag_value};"
+
+        data = data[:len(data)-1]
+
+        return data
+
+    def __extract_signature_id_from_xml(self, xml_root):
+        tags = xml_root.xpath(".//ds:Signature", namespaces= self.namespaces)
+        data = ""
+
+        for i in range(len(tags)):
+            tag_attrib = tags[i].attrib.get("Id")
+
+            data += f"{i}:{tag_attrib};"
+
+        data = data[:len(data)-1]
+        
+        return data
+
+    def __extract_signature_timestamp_from_xml(self, xml_root):
+        tags = xml_root.xpath(".//xades:SignatureTimeStamp", namespaces= self.namespaces)
+        data = ""
+
+        for i in range(len(tags)):
+            tag_attrib = tags[i].attrib.get("Id")
+
+            data += f"{i}:{tag_attrib};"
+
+        data = data[:len(data)-1]
+        
+        return data
+
+    def __extract_signing_time_from_xml(self, xml_root):
+        tags = xml_root.xpath(".//xades:SigningTime", namespaces= self.namespaces)
+        data = ""
+
+        for i in range(len(tags)):
+            tag_value = tags[i].text
+
+            data += f"{i}:{tag_value};"
+
+        data = data[:len(data)-1]
+        
+        return data
+
+    def __extract_signature_value_from_xml(self, xml_root):
+        tags = xml_root.xpath(".//ds:SignatureValue", namespaces= self.namespaces)
+        data = ""
+
+        for i in range(len(tags)):
+            tag_attrib = tags[i].attrib.get("Id")
+            tag_value = tags[i].text
+
+            data += f"{i}:{tag_attrib}:{tag_value};"
+
+        data = data[:len(data)-1]
+        
+        return data
 
     def __format_data(self, data):
         # Formatted data follows the following pattern:
@@ -182,9 +363,47 @@ class XMLHandler:
         formatted_data += "IesEmissora/Mantenedora/Endereco/UF:{};".format(data["issuer"]["maintainer_address_uf"])
         formatted_data += "IesEmissora/Mantenedora/Endereco/CEP:{}".format(data["issuer"]["maintainer_address_cep"])
 
+        formatted_data += "$"
+
+        for i in range(len(data["encapsulated_timestamp"]["id"])):
+            if i > 0:
+                formatted_data += ";"
+            tag_id = data["encapsulated_timestamp"]["id"][i]
+            tag_value = data["encapsulated_timestamp"]["value"][i]
+            formatted_data += f"{i}:{tag_id}:{tag_value}"
+        
+        formatted_data += "$"
+
+        for i in range(len(data["signature_id"])):
+            if i > 0:
+                formatted_data += ";"
+            signature_id = data["signature_id"][i]
+            formatted_data += f"{i}:{signature_id}"
+        
+        formatted_data += "$"
+
+        for i in range(len(data["signature_timestamp"])):
+            if i > 0:
+                formatted_data += ";"
+            signature_timestamp = data["signature_timestamp"][i]
+            formatted_data += f"{i}:{signature_timestamp}"
+        
+        formatted_data += "$"
+
+        for i in range(len(data["signing_time"])):
+            if i > 0:
+                formatted_data += ";"
+            signing_time = data["signing_time"][i]
+            formatted_data += f"{i}:{signing_time}"
+
+        formatted_data += "$"
+
+        for i in range(len(data["signature_value"]["id"])):
+            if i > 0:
+                formatted_data += ";"
+            tag_id = data["signature_value"]["id"][i]
+            tag_value = data["signature_value"]["value"][i]
+            formatted_data += f"{i}:{tag_id}:{tag_value}"
+
         return formatted_data
 
-xml_handler = XMLHandler()
-xml_handler.create_xml(amount=5)
-xml_handler.extract_data(amount=5)
-xml_handler.recreate_xml(amount=5)

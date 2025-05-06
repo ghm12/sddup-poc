@@ -1,5 +1,7 @@
 from faker import Faker
+
 import random
+import base64
 
 class DataGenerator:
     def __init__(self, language: str = "pt-BR", seeded: bool = True):
@@ -12,9 +14,6 @@ class DataGenerator:
     def __set_seed(self):
         Faker.seed(12345)
         random.seed(12345)
-
-    def testing(self):
-        return self.generate_data_xml_amount(3)
 
     def generate_pdf_data(self):
         pass
@@ -33,6 +32,21 @@ class DataGenerator:
 
         # Issuer data
         data["issuer"] = self.__generate_xml_issuer_data()
+
+        # EncapsulatedTimeStamp data
+        data["encapsulated_timestamp"] = self.__generate_encapsulated_timestamp_data()
+
+        # SignatureId data
+        data["signature_id"] = self.__generate_signature_id_data()
+
+        # SignatureTimeStamp data
+        data["signature_timestamp"] = self.__generate_signature_timestamp_data()
+
+        # SigningTime data
+        data["signing_time"] = self.__generate_signing_time_data()
+
+        # SignatureValue data
+        data["signature_value"] = self.__generate_signature_value_data()
 
         return data
 
@@ -219,4 +233,54 @@ class DataGenerator:
         data["maintainer_address_city"] = issuer_maintainer_address_city
         data["maintainer_address_uf"] = issuer_maintainer_address_uf
         data["maintainer_address_cep"] = issuer_maintainer_address_cep
+        
+        return data
+
+    def __generate_encapsulated_timestamp_data(self):
+        data = dict()
+        data["id"], data["value"] = list(None for _ in range(13)), list(None for _ in range(13))
+
+        for i in range(13):
+            data["id"][i] = "ETS-{}-{}-{}-{}-{}".format(random.randbytes(4).hex(), random.randbytes(2).hex(),
+                                                         random.randbytes(2).hex(), random.randbytes(2).hex(),
+                                                         random.randbytes(6).hex())
+            data["value"][i] = base64.b64encode(random.randbytes(13000))
+
+        return data
+
+    def __generate_signature_id_data(self):
+        data = dict()
+
+        for i in range(6):
+            data[i] = "id-{}".format(random.randbytes(16).hex())
+
+        return data
+
+    def __generate_signature_timestamp_data(self):
+        data = dict()
+
+        for i in range(6):
+            data[i] = "TS-{}-{}-{}-{}-{}".format(random.randbytes(4).hex(), random.randbytes(2).hex(),
+                                                 random.randbytes(2).hex(), random.randbytes(2).hex(),
+                                                 random.randbytes(6).hex())
+
+        return data
+
+    def __generate_signing_time_data(self):
+        data = dict()
+
+        for i in range(6):
+            time = self.faker.date_time()
+            data[i] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        return data
+
+    def __generate_signature_value_data(self):
+        data = dict()
+        data["id"], data["value"] = list(None for _ in range(6)), list(None for _ in range(6))
+
+        for i in range(6):
+            data["id"][i] = "value-id-{}".format(random.randbytes(16).hex())
+            data["value"][i] = base64.b64encode(random.randbytes(258))
+
         return data
