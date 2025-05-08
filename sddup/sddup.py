@@ -57,7 +57,8 @@ class SDDup:
         return True
 
     def __clean_previous_experiment(self):
-        shutil.rmtree(self.outputs_path)
+        if os.path.isdir(self.outputs_path):
+            shutil.rmtree(self.outputs_path)
 
     def __calculate_R(self, amount: int):
         naive_approach_total_size = self.__get_directory_filesize(self.xml_generated_xml_path)

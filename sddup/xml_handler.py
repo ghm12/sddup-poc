@@ -290,7 +290,7 @@ class XMLHandler:
         formatted_data += "Diplomado/ID:{};".format(data["graduate"]["id"])
         formatted_data += "Diplomado/Nome:{};".format(data["graduate"]["name"])
         formatted_data += "Diplomado/Sexo:{};".format(data["graduate"]["gender"])
-        formatted_data += "Diplomado/Nacionalidade:{};".format(data["graduate"]["id"])
+        formatted_data += "Diplomado/Nacionalidade:{};".format(data["graduate"]["nationality"])
         formatted_data += "Diplomado/Naturalidade/CodigoMunicipio:{};".format(data["graduate"]["city_code"])
         formatted_data += "Diplomado/Naturalidade/NomeMunicipio:{};".format(data["graduate"]["city_name"])
         formatted_data += "Diplomado/Naturalidade/UF:{};".format(data["graduate"]["city_uf"])
