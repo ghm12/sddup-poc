@@ -1,4 +1,4 @@
-from data_generator import DataGenerator
+from data_generator import XMLDataGenerator
 
 from lxml import etree
 import os
@@ -7,37 +7,10 @@ import xml.etree.ElementTree as ET
 
 class XMLHandler:
     def __init__(self):
-        self.generator = DataGenerator()
+        self.generator = XMLDataGenerator()
         self.namespaces = {"ns": "http://portal.mec.gov.br/diplomadigital/arquivos-em-xsd",
                            "xades": "http://uri.etsi.org/01903/v1.3.2#",
                            "ds": "http://www.w3.org/2000/09/xmldsig#"}
-
-    def test(self):
-        xml_root = etree.parse("./templates/diploma_template.xml")
-        
-        tags = xml_root.xpath(".//xades:EncapsulatedTimeStamp", namespaces= self.namespaces)
-        for tag in tags:
-            tag.attrib["Id"] = ""
-            tag.text = ""
-
-        tags = xml_root.xpath(".//ds:Signature", namespaces= self.namespaces)
-        for tag in tags:
-            tag.attrib["Id"] = ""
-
-        tags = xml_root.xpath(".//xades:SignatureTimeStamp", namespaces= self.namespaces)
-        for tag in tags:
-            tag.attrib["Id"] = ""
-
-        tags = xml_root.xpath(".//xades:SigningTime", namespaces= self.namespaces)
-        for tag in tags:
-            tag.text = ""
-        
-        tags = xml_root.xpath(".//ds:SignatureValue", namespaces= self.namespaces)
-        for tag in tags:
-            tag.attrib["Id"] = ""
-            tag.text = ""
-
-        xml_root.write("./templates/diploma_template.xml", doctype='<?xml version="1.0" encoding="UTF-8" standalone="no"?>', encoding="UTF-8")
 
     def create_xml(self, amount: int = 1, template_path: str = "./sddup/templates/diploma_template.xml", output_path: str = "./sddup/outputs/xml/generated_xmls"):
         os.makedirs(output_path, exist_ok=True)

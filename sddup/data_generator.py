@@ -3,7 +3,7 @@ from faker import Faker
 import random
 import base64
 
-class DataGenerator:
+class XMLDataGenerator:
     def __init__(self, language: str = "pt-BR", seeded: bool = True):
         self.faker = Faker(language)
         
@@ -14,12 +14,6 @@ class DataGenerator:
     def __set_seed(self):
         Faker.seed(12345)
         random.seed(12345)
-
-    def generate_pdf_data(self):
-        pass
-
-    def generate_pdf_data_amount(self):
-        pass
 
     def generate_data_xml(self):
         data = dict()
@@ -282,5 +276,214 @@ class DataGenerator:
         for i in range(6):
             data["id"][i] = "value-id-{}".format(random.randbytes(16).hex())
             data["value"][i] = base64.b64encode(random.randbytes(258))
+
+        return data\
+            
+class PDFDataGenerator:
+    def __init__(self, language: str = "pt-BR", seeded: bool = True):
+        self.faker = Faker(language)
+        if seeded:
+            self.__set_seed()
+
+    def __set_seed(self):
+        Faker.seed(12345)
+        random.seed(12345)
+
+    def generate_data_pdf(self):
+        data = dict()
+
+        person = self.__generate_person_data()
+
+        father = self.__generate_person_data()
+        mother = self.__generate_person_data()
+
+        grandpa_father = self.faker.name_male()
+        grandma_father = self.faker.name_female()
+
+        grandpa_mother = self.faker.name_male()
+        grandma_mother = self.faker.name_female()
+
+        grandparents = f"{grandpa_father} e {grandma_father}; {grandpa_mother} e {grandma_mother}"
+
+        birth_date = self.__format_date(person["birth_date"])
+        birth_city = f"{person['address']['city']} - {person['address']['state']}"
+        birth_place = f"Hospital {person['address']['neighborhood']}"
+
+        affiliation = self.__format_affiliation(father, mother)
+
+        declarant = self.faker.name()
+        registry_date = self.__format_written_date(None)
+
+        observations = self.__generate_observation(person)
+
+        office_city = f"{person['address']['city']} - {person['address']['state']}"
+        office_name = f"Oficio da cidade {person['address']['city']} do Estado de {person['address']['state']}"
+        office_address = self.faker.address().replace("\n", " ")
+
+        data["nome"] = person["name"]
+        data["matrícula"] = person["registration"]
+        data["cpf"] = person["cpf"]
+
+        data["data de nascimento"] = birth_date["written_date"]
+        data["dia"] = birth_date["day"]
+        data["mês"] = birth_date["month"]
+        data["ano"] = birth_date["year"]
+        data["hora de nascimento"] = birth_date["hour"]
+        data["município de nascimento"] = birth_city
+        data["local de nascimento"] = birth_place
+        data["município de registro"] = birth_city
+        data["sexo"] = person["gender"]
+
+        data["filiação"] = affiliation
+        data["avós"] = grandparents
+
+        # TODO random chance to be twins?
+        data["nome e matrícula dos gêmeos"] = "Não consta"
+        data["gêmeos"] = "Não"
+
+        data["declarante"] = declarant
+
+        data["data do registro"] = registry_date 
+        data["dnv"] = "Não consta"
+
+        data["observações"] = observations
+
+        data["município ofício"] = office_city
+        data["nome do ofício"] = office_name
+        data["endereço"] = office_address
+
+        data["código de acesso"] = "asdf123"
+
+        return data
+
+    def __format_affiliation(self, father: dict, mother: dict):
+        data = ""
+
+        states = {"AC": "Acre", "AL": "Alagoas", "AP": "Amapá", "AM": "Amazonas", "BA": "Bahia", "CE": "Ceará", "DF": "Distrito Federal", "ES": "Espírito Santo", "GO": "Goiás", "MA": "Maranhão", "MT": "Mato Grosso", "MS": "Mato Grosso do Sul", "MG": "Minas Gerais", "PA": "Pará", "PB": "Paraíba", "PR": "Paraná", "PE": "Pernambuco", "PI": "Piauí", "RJ": "Rio de Janeiro", "RN": "Rio Grande do Norte", "RS": "Rio Grande do Sul", "RO": "Rondônia", "RR": "Roraima", "SC": "Santa Catarina", "SP": "São Paulo", "SE": "Sergipe", "TO": "Tocantins"}
+  
+        father_name = father["name"]
+        father_street = father["address"]["street"]
+        father_number = father["address"]["number"]
+        father_city = father["address"]["city"]
+        father_state = father["address"]["state"]
+        father_state_full = states[father_state]
+
+        mother_name = mother["name"]
+        mother_street = mother["address"]["street"]
+        mother_number = mother["address"]["number"]
+        mother_city = mother["address"]["city"]
+        mother_state = mother["address"]["state"]
+        mother_state_full = states[mother_state]
+        
+        data = f"{father_name}, Natural de Estado de {father_state_full} - {father_state}, residente e domiciliado à(em) rua {father_street}, {father_number}, {father_city}-{father_state} e "
+        data += f"{mother_name}, Natural de Estado de {mother_state_full} - {mother_state}, residente e domiciliada à(em) rua {father_street}, {father_number}, {father_city}-{father_state}."
+
+        return data
+
+    def __format_date(self, birth_date):
+        data = dict()
+
+        hour = birth_date.strftime("%H:%S")
+        day = birth_date.strftime("%d")
+        month = birth_date.strftime("%m")
+        year = birth_date.strftime("%Y")
+        written_date = self.__format_written_date(birth_date)
+
+        data["hour"] = hour
+        data["day"] = day
+        data["month"] = month
+        data["year"] = year
+        data["written_date"] = written_date
+
+        return data
+
+    def __format_written_date(self, date):
+        return "Oito de Abril de Mil novecentos e Sessenta e oito"
+
+    def __generate_cpf(self):
+        a = random.randint(0, 999)
+        b = random.randint(0, 999)
+        c = random.randint(0, 999)
+        d = random.randint(0, 99)
+
+        cpf = f"{a:03}.{b:03}.{c:03}-{d:02}"
+        
+        return cpf
+
+    def __generate_registration(self):
+        registry_id = random.randint(0, 999999)
+        collection_id = random.randint(0, 99)
+        rc_service_number = random.randint(0, 99)
+        year = random.randint(0, 9999)
+        registration_type = random.randint(0, 9)
+        book_number = random.randint(0, 99999)
+        page_number = random.randint(0, 999)
+        term_number = random.randint(0, 9999999)
+        verification_number = random.randint(0, 99)
+
+        registration = f"{registry_id:06} {collection_id:02} {rc_service_number:02} {year:04} {registration_type} {book_number:03} {page_number:03} {term_number:07} {verification_number:02}"
+
+        return registration
+
+    def __generate_address(self):
+        data = dict()
+
+        address = self.faker.address().split("\n")
+        
+        street_chunks = address[0].split(",")
+        street = street_chunks[0].strip()
+        
+        if len(street_chunks) > 1:
+            number = street_chunks[1].strip()
+        else:
+            number = "s/n"
+
+        neighborhood = address[1].strip()
+
+        address_chunks = address[2].split(" ", 1)
+        city_state = address_chunks[1].split("/")
+
+        cep = address_chunks[0].strip()
+        city = city_state[0].strip()
+        state = city_state[1].strip()
+
+        data["street"] = street
+        data["number"] = number
+        data["neighborhood"] = neighborhood
+        data["cep"] = cep
+        data["city"] = city
+        data["state"] = state
+        data["cep"] = cep
+
+        return data
+
+    def __generate_observation(self, person: dict):
+        date = self.__format_date(self.faker.date_time())
+        
+        ret = "AVERBAÇÃO: {} ESTÁ INSCRITO(A) NO CPF SOB O Nº {}, AVERBADO(S) NOS TERMOS DO PROVIMENTO Nº 149/2023 DO CNJ. {} - {}, {}/{}/{} ".format(person["name"], person["cpf"], person["address"]["city"], person["address"]["state"], date["day"], date["month"], date["year"])
+
+        return ret
+
+    def __generate_person_data(self):
+        data = dict()
+        
+        name = self.faker.name()
+        registration = self.__generate_registration()
+        cpf = self.__generate_cpf()
+
+        birth_date = self.faker.date_time()
+
+        address = self.__generate_address()
+
+        gender = ["Masculino", "Feminino"]
+        n = random.randint(0, 1)
+        gender = gender[n]
+
+        data["name"] = name
+        data["registration"] = registration
+        data["cpf"] = cpf
+        data["birth_date"] = birth_date
+        data["address"] = address
+        data["gender"] = gender
 
         return data
