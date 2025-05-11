@@ -12,7 +12,7 @@ class XMLHandler:
                            "xades": "http://uri.etsi.org/01903/v1.3.2#",
                            "ds": "http://www.w3.org/2000/09/xmldsig#"}
 
-    def create_xml(self, amount: int = 1, template_path: str = "./sddup/templates/diploma_template.xml", output_path: str = "./sddup/outputs/xml/generated_xmls"):
+    def create_xml(self, amount: int = 1, template_path: str = "./sddup/data/templates/diploma_template.xml", output_path: str = "./sddup/outputs/xml/generated_xmls"):
         os.makedirs(output_path, exist_ok=True)
 
         for i in range(amount):
@@ -33,7 +33,7 @@ class XMLHandler:
             with open(f"{output_path}/extracted_data_{i}.data", "w") as file:
                 file.write(data)
 
-    def recreate_xml(self, amount: int = 1, template_path: str = "./sddup/templates/diploma_template.xml", data_path: str = "./sddup/outputs/xml/extracted_data", output_path: str = "./sddup/outputs/xml/recreated_xmls"):
+    def recreate_xml(self, amount: int = 1, template_path: str = "./sddup/data/templates/diploma_template.xml", data_path: str = "./sddup/outputs/xml/extracted_data", output_path: str = "./sddup/outputs/xml/recreated_xmls"):
         os.makedirs(output_path, exist_ok=True)
 
         for i in range(amount):

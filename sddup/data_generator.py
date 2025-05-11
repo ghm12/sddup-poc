@@ -320,6 +320,8 @@ class PDFDataGenerator:
         office_name = f"Oficio da cidade {person['address']['city']} do Estado de {person['address']['state']}"
         office_address = self.faker.address().replace("\n", " ")
 
+        access_code = base64.b64encode(random.randbytes(6)).decode('UTF-8')
+
         data["nome"] = person["name"]
         data["matrícula"] = person["registration"]
         data["cpf"] = person["cpf"]
@@ -352,7 +354,9 @@ class PDFDataGenerator:
         data["nome do ofício"] = office_name
         data["endereço"] = office_address
 
-        data["código de acesso"] = "asdf123"
+        data["código de acesso"] = access_code
+
+        data["Assinatura do Registrador"] = "foo"
 
         return data
 
