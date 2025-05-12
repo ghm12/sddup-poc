@@ -1,4 +1,5 @@
 from data_generator import PDFDataGenerator
+from data_cipher import DataCipher
 
 import os
 import base64
@@ -11,6 +12,7 @@ from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
 class PDFHandler:
     def __init__(self):
         self.generator = PDFDataGenerator()
+        self.data_cipher = DataCipher()
 
         self.form_fields = ["ano", "avós", "cpf", "código de acesso", "data de nascimento", "data do registro", "declarante", "dia", "dnv", "endereço", "filiação", "gêmeos", "hora de nascimento", "local de nascimento", "matrícula", "município de nascimento", "município de registro", "município ofício", "mês", "nome", "nome do ofício", "nome e matrícula dos gêmeos", "observações", "sexo"]
 
@@ -39,20 +41,21 @@ class PDFHandler:
 
         for i in range(amount):
             data = self.__extract_pdf_data(f"{pdf_path}/pdf_generated_from_template_{i}.pdf")
-            
-            with open(f"{output_path}/extracted_data_{i}.data", "w") as file:
+            data = self.data_cipher.encrypt_data(data)    
+            with open(f"{output_path}/extracted_data_{i}.data", "wb") as file:
                 file.write(data)
 
     def recreate_pdf(self, amount: int = 1, template_path: str = "./sddup/data/templates/birth_certificate_template.pdf", data_path: str = "./sddup/outputs/pdf/extracted_data", output_path: str = "./sddup/outputs/pdf/recreated_pdfs"):
         os.makedirs(output_path, exist_ok=True)
 
         for i in range(amount):
-            with open(f"{data_path}/extracted_data_{i}.data", "r") as file:
+            with open(f"{data_path}/extracted_data_{i}.data", "rb") as file:
                 data = file.read()
 
+            data = self.data_cipher.decrypt_data(data)
             form_data, signature_data = self.__fill_pdf_data(data)
 
-            output_file = f"{output_path}/pdf_recreated_from_template_{i}.pdf"
+            output_file = f"{output_path}/pdf_recreated_from_data_{i}.pdf"
             fillpdfs.write_fillable_pdf(template_path, output_file, form_data, flatten=True)
             self.__fill_signature_data(output_file, signature_data)
 
@@ -74,8 +77,6 @@ class PDFHandler:
         data_from_pdf = fillpdfs.get_form_fields(pdf_path)
         data = self.__format_data(data_from_pdf, handle_special_fields= True)
         data += "{}".format(self.__extract_pdf_signature(pdf_path))
-
-        print(data)
 
         return data
 

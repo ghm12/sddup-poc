@@ -23,14 +23,17 @@ class SDDup:
         self.pdf_recreated_pdf_path = "./sddup/outputs/pdf/recreated_pdfs"
 
     def run_experiment(self, experiment_type: str, amount: int = 100):
-        if experiment_type == "xml":
+        if experiment_type == "xml" or experiment_type == "both":
             self.run_experiment_xml(amount)
 
-        if experiment_type == "pdf":
+        if experiment_type == "pdf" or experiment_type == "both":
             self.run_experiment_pdf(amount)
 
     def run_experiment_xml(self, amount: int = 100):
         experiment_type = "xml"
+
+        print("Starting experiment for XML")
+        print()
 
         print("Cleaning previous experiment (if any)...")
         self.__clean_previous_experiment("xml")
@@ -58,9 +61,13 @@ class SDDup:
         r_value = self.__calculate_R(experiment_type, amount)
         e_value = self.__calculate_E(r_value)
         print(f"R = {r_value:.5%} / E = {e_value:.5%}")
+        print()
 
     def run_experiment_pdf(self, amount: int = 100):
         experiment_type = "pdf"
+
+        print("Starting experiment for PDF")
+        print()
 
         print("Cleaning previous experiment (if any)...")
         self.__clean_previous_experiment("pdf")
@@ -88,15 +95,16 @@ class SDDup:
         r_value = self.__calculate_R(experiment_type, amount)
         e_value = self.__calculate_E(r_value)
         print(f"R = {r_value:.5%} / E = {e_value:.5%}")
+        print()
 
     def __check_hash_from_recreated_files(self, experiment_type: str, amount: int = 100):
         if experiment_type == "xml":
             generated_path = f"{self.xml_generated_xml_path}/xml_generated_from_template_" + "{}" + ".xml"
-            recreated_path = f"{self.xml_recreated_xml_path}/xml_recreated_from_template_" + "{}" + ".xml"
+            recreated_path = f"{self.xml_recreated_xml_path}/xml_recreated_from_data_" + "{}" + ".xml"
 
         if experiment_type == "pdf":
             generated_path = f"{self.pdf_generated_pdf_path}/pdf_generated_from_template_" + "{}" + ".pdf"
-            recreated_path = f"{self.pdf_recreated_pdf_path}/pdf_recreated_from_template_" + "{}" + ".pdf"
+            recreated_path = f"{self.pdf_recreated_pdf_path}/pdf_recreated_from_data_" + "{}" + ".pdf"
         
         for i in range(amount):
             generated_xml = open(generated_path.format(i), "rb")

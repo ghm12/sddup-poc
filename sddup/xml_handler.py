@@ -1,4 +1,5 @@
 from data_generator import XMLDataGenerator
+from data_cipher import DataCipher
 
 from lxml import etree
 import os
@@ -8,6 +9,7 @@ import xml.etree.ElementTree as ET
 class XMLHandler:
     def __init__(self):
         self.generator = XMLDataGenerator()
+        self.data_cipher = DataCipher()
         self.namespaces = {"ns": "http://portal.mec.gov.br/diplomadigital/arquivos-em-xsd",
                            "xades": "http://uri.etsi.org/01903/v1.3.2#",
                            "ds": "http://www.w3.org/2000/09/xmldsig#"}
@@ -29,17 +31,18 @@ class XMLHandler:
 
         for i in range(amount):
             data = self.__extract_data_from_xml(f"{xml_dir_path}/xml_generated_from_template_{i}.xml")
-
-            with open(f"{output_path}/extracted_data_{i}.data", "w") as file:
+            data = self.data_cipher.encrypt_data(data)
+            with open(f"{output_path}/extracted_data_{i}.data", "wb") as file:
                 file.write(data)
 
     def recreate_xml(self, amount: int = 1, template_path: str = "./sddup/data/templates/diploma_template.xml", data_path: str = "./sddup/outputs/xml/extracted_data", output_path: str = "./sddup/outputs/xml/recreated_xmls"):
         os.makedirs(output_path, exist_ok=True)
 
         for i in range(amount):
-            with open(f"{data_path}/extracted_data_{i}.data", "r") as file:
+            with open(f"{data_path}/extracted_data_{i}.data", "rb") as file:
                 data = file.read()
 
+            data = self.data_cipher.decrypt_data(data)
             xml_root = etree.parse(template_path)
 
             xml_root = self.__fill_xml(data, xml_root)
