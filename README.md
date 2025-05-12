@@ -61,8 +61,5 @@ Both arguments are optional and have the following meaning:
 * experiment_type - Type of experiment to be run, either `pdf`, `xml` or `both`. Default `both`.
 * amount - Amount of files to be generated and processed, must be a positive integer. Default `100`.
 
-## Experiment scope and simplifications
-This experiment's purpose is to demonstrate the storage gains when applying the SDDup protocol while retaining data secrecy. For that reason, there are a few simplifications in the implementation:
-* Although generated PDF files are signed, generated XML files are instead filled with random bytes of their respective signature size. Since the hash of files are the same before data extraction and after file recreation, we can infer the signature remains valid.
-
-
+## Test output
+Tests are considered successful when the hash from the generated documents matches with its reconstructed counterpart. Since the hashes of the documents are the same, we can infer that document integrity and signatures are maintained.
