@@ -2,7 +2,7 @@
 name = "sddup"
 version = "0.1.0"
 description = ""
-authors = ["Gabriel Holstein Meireles <ghm12@protonmail.com>"]
+authors = ["Anonymous"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
