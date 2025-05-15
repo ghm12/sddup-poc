@@ -312,7 +312,7 @@ class PDFDataGenerator:
         affiliation = self.__format_affiliation(father, mother)
 
         declarant = self.faker.name()
-        registry_date = self.__format_written_date(None)
+        registry_date = self.__format_written_date(person["birth_date"])
 
         observations = self.__generate_observation(person)
 
@@ -402,7 +402,50 @@ class PDFDataGenerator:
         return data
 
     def __format_written_date(self, date):
-        return "Oito de Abril de Mil novecentos e Sessenta e oito"
+        days = {1: "Um", 2: "Dois", 3: "Três", 4: "Quatro", 5: "Cinco", 6: "Seis", 7: "Sete", 8: "Oito", 9: "Nove", 10: "Dez",
+                11: "Onze", 12: "Doze", 13: "Treze", 14: "Quatorze", 15: "Quinze", 16: "Desesseis", 17: "Dezessete", 18: "Dezoito", 19: "Dezenove", 20: "Vinte",
+                21: "Vinte e Um", 22: "Vinte e Dois", 23: "Vinte e Três", 24: "Vinte e Quatro", 25: "Vinte e Cinco", 26: "Vinte e Seis", 27: "Vinte e Sete", 28: "Vinte e Oito", 29: "Vinte e Nove", 30: "Trinta",
+                31: "Trinta e Um"}
+
+        months = {1: "Janeiro", 2: "Fevereiro", 3: "Março", 4: "Abril", 5: "Maio", 6: "Junho",
+                  7: "Julho", 8: "Agosto", 9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"}
+
+        year_thousands = {19: "Mil Novecentos", 20: "Dois Mil"}
+        year_tens = {2: "Vinte", 3: "Trinta", 4: "Quarenta", 5: "Cinquenta", 6: "Sessenta", 7: "Setenta", 8: "Oitenta", 9: "Noventa"}
+
+        day = date.strftime("%d")
+        month = date.strftime("%m")
+        year = date.strftime("%Y")
+
+        day_written = days[int(day)]
+        month_written = months[int(month)]
+
+        year_str = str(year)
+        year_thousands_str = year_str[:2]
+        year_tens_str = year_str[2]
+        year_units_str = year_str[3]
+
+        year_thousand = year_thousands[int(year_thousands_str)]
+
+        if year_tens_str == "0" and year_units_str == "0":
+            return f"{day_written} de {month_written} de {year_thousand}"
+
+        if year_tens_str == "0" and year_units_str != "0":
+            year_unit = days[int(year_units_str)]
+            return f"{day_written} de {month_written} de {year_thousand} e {year_unit}"
+
+        if year_tens_str == "1":
+            year_unit = days[int(year_tens_str + year_units_str)]
+            return f"{day_written} de {month_written} de {year_thousand} e {year_unit}"
+
+        year_ten = year_tens[int(year_tens_str)]
+        
+        if year_units_str == "0":
+            return f"{day_written} de {month_written} de {year_thousand} e {year_ten}"
+
+        year_unit = days[int(year_units_str)]
+
+        return f"{day_written} de {month_written} de {year_thousand} e {year_ten} e {year_unit}"
 
     def __generate_cpf(self):
         a = random.randint(0, 999)

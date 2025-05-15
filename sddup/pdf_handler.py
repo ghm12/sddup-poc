@@ -132,7 +132,3 @@ class PDFHandler:
 
         return formatted_data
 
-pdf = PDFHandler()
-pdf.create_pdf(5)
-pdf.extract_data(5)
-pdf.recreate_pdf(5)
